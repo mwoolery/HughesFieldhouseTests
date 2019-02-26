@@ -1,18 +1,21 @@
+import static com.mongodb.client.model.Filters.eq;
 import static org.junit.Assert.*;
 
-import com.mongodb.MongoClientURI;
+import com.mongodb.*;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import com.mongodb.DB;
-import com.mongodb.MongoClient;
 
+import javax.print.Doc;
 import java.util.concurrent.TimeUnit;
 
 class HughesFieldhouseSeleniumTest {
@@ -48,12 +51,14 @@ class HughesFieldhouseSeleniumTest {
 
         //db tests
         connected_to_db(database);
+
         //banneritem controller tests
-        banneritem_create(database,browser,count);
+        banneritem_create(database,browser);
+        BannerItemCreatePosted(database);
         banneritem_details(database,browser,count);
         banneritem_edit(database,browser,count);
         banneritem_delete(database,browser,count);
-        
+        Delete_BannerItem_From_Database(database,browser);
 
         //close everything down
         mongoClient.close();
@@ -129,6 +134,7 @@ class HughesFieldhouseSeleniumTest {
         browser.findElement(By.id("username")).sendKeys("admin");
         browser.findElement(By.id("password")).sendKeys("admin");
         browser.findElement(By.id("btn")).click();
+        try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         // after click it is going to login page, and we just check to see if it ended up loading
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Items";
@@ -146,19 +152,39 @@ class HughesFieldhouseSeleniumTest {
 
     }
     @Test
-    public static void banneritem_create(MongoDatabase db, WebDriver browser, int expectedID) {
+    public static void banneritem_create(MongoDatabase db, WebDriver browser) {
         browser.get("http://localhost:3000/banneritem/create");
+        //Make thread sleep to give javascript time to update page title
+        try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Create";
+
+
+        browser.findElement(By.id("Description")).sendKeys("TEST");
+        browser.findElement(By.id("startDate")).sendKeys("02-20-2019");
+        browser.findElement(By.id("startTime")).sendKeys("12:00 PM");
+        browser.findElement(By.id("endDate")).sendKeys("02-21-2019");
+        browser.findElement(By.id("endTime")).sendKeys("12:00 PM");
+        browser.findElement(By.id("priority")).click();
+        browser.findElement(By.id("link")).sendKeys("http://www.nwmissouri.edu");
+        browser.findElement(By.id("btn")).click();
+
         assertEquals(expectedTitle,actualTitle);
         System.out.println(" banneritem/create found");
-
-
+    }
+    @Test
+    public static void BannerItemCreatePosted(MongoDatabase db){
+        String expectedJSON = "{ \"_id\" : 1, \"description\" : \"TEST\", \"startDate\" : \"02-20-2019\", \"endDate\" : \"02-21-2019\", \"startTime\" : \"12:00 PM\", \"endTime\" : \"12:00 PM\", \"priority\" : true, \"link\" : \"http://www.nwmissouri.edu\", \"__v\" : 0 }";
+        assertEquals(expectedJSON, getFirstDBItem(db));
+        System.out.println("Database properly inserted record");
     }
     @Test
     public static void banneritem_details(MongoDatabase db, WebDriver browser, int id) {
         String idStr = String.valueOf(id);
         browser.get("http://localhost:3000/banneritem/details/" + idStr);
+        browser.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        //Make thread sleep to give javascript time to update page title
+
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Details";
         assertEquals(expectedTitle,actualTitle);
@@ -170,6 +196,7 @@ class HughesFieldhouseSeleniumTest {
     public static void banneritem_edit(MongoDatabase db, WebDriver browser,  int id) {
         String idStr = String.valueOf(id);
         browser.get("http://localhost:3000/banneritem/edit/" + idStr);
+        try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Edit";
         assertEquals(expectedTitle,actualTitle);
@@ -182,12 +209,41 @@ class HughesFieldhouseSeleniumTest {
 
         String idStr = String.valueOf(id);
         browser.get("http://localhost:3000/banneritem/delete/" + idStr);
+        try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Delete";
         assertEquals(expectedTitle,actualTitle);
         System.out.println(" banneritem/delete found");
 
     }
+    @Test
+    public static void Delete_BannerItem_From_Database(MongoDatabase db, WebDriver browser){
+
+        browser.get("http://localhost:3000/banneritem/delete/1");
+        browser.findElement(By.id("deletebtn")).click();
+        try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
+
+        String expectedValue = "[]";
+        String actualValue = "";
+
+        try {
+            MongoCollection<Document> myCollection = db.getCollection("banneritems");
+            Document document = myCollection.find(eq("_id",1)).first();
+            actualValue = document.toJson();
+        }catch(NullPointerException ex){
+            actualValue = "[]";
+        }
+        assertEquals(expectedValue, actualValue);
+        System.out.println("Successful deletion of banneritem");
+    }
 
 
+    public static String getFirstDBItem(MongoDatabase db){
+
+        MongoCollection<Document> myCollection = db.getCollection("banneritems");
+        Document document = myCollection.find(eq("_id",1)).first();
+// { "_id" : 1, "description" : "TEST", "startDate" : "02-20-2019", "endDate" : "02-21-2019", "startTime" : "12:00 PM", "endTime" : "12:00 PM", "priority" : true, "link" : "http://www.nwmissouri.edu", "__v" : 0 }
+        String json = document.toJson();
+        return json;
+    }
 }
