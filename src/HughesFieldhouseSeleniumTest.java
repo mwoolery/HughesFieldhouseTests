@@ -55,9 +55,10 @@ class HughesFieldhouseSeleniumTest {
         //banneritem controller tests
         banneritem_create(database,browser);
         BannerItemCreatePosted(database);
-        banneritem_details(database,browser,count);
-        banneritem_edit(database,browser,count);
-        banneritem_delete(database,browser,count);
+        banneritem_details(database,browser);
+        banneritem_edit(database,browser);
+        banneritem_delete(database,browser);
+        BannerItemEditSuccess(database,browser);
         Delete_BannerItem_From_Database(database,browser);
 
         //close everything down
@@ -179,9 +180,9 @@ class HughesFieldhouseSeleniumTest {
         System.out.println("Database properly inserted record");
     }
     @Test
-    public static void banneritem_details(MongoDatabase db, WebDriver browser, int id) {
-        String idStr = String.valueOf(id);
-        browser.get("http://localhost:3000/banneritem/details/" + idStr);
+    public static void banneritem_details(MongoDatabase db, WebDriver browser) {
+
+        browser.get("http://localhost:3000/banneritem/details/1");
         browser.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         //Make thread sleep to give javascript time to update page title
 
@@ -193,9 +194,8 @@ class HughesFieldhouseSeleniumTest {
 
     }
     @Test
-    public static void banneritem_edit(MongoDatabase db, WebDriver browser,  int id) {
-        String idStr = String.valueOf(id);
-        browser.get("http://localhost:3000/banneritem/edit/" + idStr);
+    public static void banneritem_edit(MongoDatabase db, WebDriver browser) {
+        browser.get("http://localhost:3000/banneritem/edit/1" );
         try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Edit";
@@ -205,10 +205,25 @@ class HughesFieldhouseSeleniumTest {
 
     }
     @Test
-    public static void banneritem_delete(MongoDatabase db, WebDriver browser, int id) {
+    public static void BannerItemEditSuccess(MongoDatabase db, WebDriver browser){
+        browser.get("http://localhost:3000/banneritem/edit/1" );
+        browser.findElement(By.id("Description")).sendKeys("TEST2");
+        browser.findElement(By.id("startDate")).sendKeys("02-20-2018");
+        browser.findElement(By.id("startTime")).sendKeys("12:00 AM");
+        browser.findElement(By.id("endDate")).sendKeys("02-21-2018");
+        browser.findElement(By.id("endTime")).sendKeys("12:00 AM");
+        browser.findElement(By.id("priority")).click();
+        browser.findElement(By.id("link")).sendKeys("http://www.google.com");
+        browser.findElement(By.id("btn")).click();
+        String expectedJSON = "{ \"_id\" : 1, \"description\" : \"TESTTEST2\", \"startDate\" : \"02-20-2019\", \"endDate\" : \"02-21-2019\", \"startTime\" : \"12:00 PM\", \"endTime\" : \"12:00 PM\", \"priority\" : false, \"link\" : \"http://www.nwmissouri.eduhttp://www.google.com\", \"__v\" : 0 }";
+        assertEquals(expectedJSON, getFirstDBItem(db));
+        System.out.println("Database properly Edited record");
+    }
+    @Test
+    public static void banneritem_delete(MongoDatabase db, WebDriver browser) {
 
-        String idStr = String.valueOf(id);
-        browser.get("http://localhost:3000/banneritem/delete/" + idStr);
+
+        browser.get("http://localhost:3000/banneritem/delete/1");
         try { Thread.sleep(1000); } catch(InterruptedException ex) { Thread.currentThread().interrupt(); }
         String actualTitle = browser.getTitle();
         String expectedTitle = "Banner Item Delete";
