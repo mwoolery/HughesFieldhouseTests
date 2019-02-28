@@ -61,9 +61,25 @@ class HughesFieldhouseSeleniumTest {
         BannerItemEditSuccess(database,browser);
         Delete_BannerItem_From_Database(database,browser);
 
-        //close everything down
+
+
+        //close everything down for normal window
         mongoClient.close();
         browser.close();
+
+        //Responsive Design Setup
+        ChromeOptions mobile = new ChromeOptions();
+        options.addArguments("headless");
+        options.addArguments("window-size=360x500");
+        WebDriver mobilebrowser;
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\mwoolery\\Desktop\\chromedriver.exe");
+        mobilebrowser = new ChromeDriver(options);
+
+        //Responsive Design Test
+        mobile_design_displays(mobilebrowser);
+
+        // close down the mobile browser
+        mobilebrowser.close();
     }
 
     @Test
@@ -260,5 +276,15 @@ class HughesFieldhouseSeleniumTest {
 // { "_id" : 1, "description" : "TEST", "startDate" : "02-20-2019", "endDate" : "02-21-2019", "startTime" : "12:00 PM", "endTime" : "12:00 PM", "priority" : true, "link" : "http://www.nwmissouri.edu", "__v" : 0 }
         String json = document.toJson();
         return json;
+    }
+
+    @Test
+    public static void mobile_design_displays(WebDriver browser) {
+        browser.get("http://localhost:3000/");
+        Boolean actualVisibility = browser.findElement(By.id("mobileTestDiv")).isDisplayed();
+        //should not be displayed on a mobile browser
+        assertEquals(false,actualVisibility);
+        System.out.println(" site did perform resizes for a mobile display");
+
     }
 }
