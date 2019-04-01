@@ -28,11 +28,11 @@ class HughesFieldhouseSeleniumTest {
         options.addArguments("window-size=1200x600");
         WebDriver browser;
         // set the chrome driver, change the File path to the location that you have your chrome driver stored
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\mwoolery\\Desktop\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "C:\\chromedriver.exe");
         browser = new ChromeDriver(options);
         //set up the mongodb connection
         MongoClientURI uri = new MongoClientURI(
-                "mongodb://dbUser:HFHsport1@cluster0-shard-00-00-5irub.mongodb.net:27017,cluster0-shard-00-01-5irub.mongodb.net:27017,cluster0-shard-00-02-5irub.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true");
+                "");
 
         MongoClient mongoClient = new MongoClient(uri);
         // get the test database, it is the default database for Atlas.
@@ -81,7 +81,7 @@ class HughesFieldhouseSeleniumTest {
         options.addArguments("headless");
         options.addArguments("window-size=360x500");
         WebDriver mobilebrowser;
-       // System.setProperty("webdriver.chrome.driver", "C:\\Users\\mwoolery\\Desktop\\chromedriver.exe");
+       // System.setProperty("webdriver.chrome.driver", "C:\\chromedriver.exe");
         mobilebrowser = new ChromeDriver(options);
 
         //Responsive Design Test, see if an element was removed from the DOM on a resize to
